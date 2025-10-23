@@ -10,11 +10,22 @@ namespace
 	SDL_Texture* color_buffer_texture = NULL;
 
 	uint32_t* color_buffer = NULL;
+
+	struct window_data
+	{
+		const wchar_t* name = L"New Window";
+		static uint16_t width;
+		static uint16_t height;
+	};
+
+	// Define the static member variables
+	uint16_t window_data::width = 0;
+	uint16_t window_data::height = 0;
 }
 
 #define active_display 3
 
-static bool initialize_window(uint16_t* width, uint16_t* height) {
+static bool initialize_window() {
 	if (!SDL_Init(SDL_INIT_VIDEO) || !SDL_Init(SDL_INIT_EVENTS)) {
 		std::cerr << "Error initializing SDL.\n";
 		return false;
@@ -42,8 +53,8 @@ static bool initialize_window(uint16_t* width, uint16_t* height) {
 
 	std::cout << "Width: " << display_mode->w << "\nHeight: " << display_mode->h << "\nDisplay Refresh rate: " << display_mode->refresh_rate << "\n";
 
-	*width = display_mode->w;
-	*height = display_mode->h;
+	window_data::width = display_mode->w;
+	window_data::height = display_mode->h;
 
 	// Get the bounds of the 2th display to position the window correctly
 	SDL_Rect display_bounds;
@@ -90,16 +101,16 @@ static bool initialize_window(uint16_t* width, uint16_t* height) {
 	return true;
 }
 
-void setup(uint16_t width, uint16_t height) {
-	color_buffer = new uint32_t[width * height];
-	memset(color_buffer, 0, width * height * sizeof(uint32_t));
+void setup() {
+	color_buffer = new uint32_t[window_data::width * window_data::height];
+	memset(color_buffer, 0, window_data::width * window_data::height * sizeof(uint32_t));
 
 	color_buffer_texture = SDL_CreateTexture(
 		renderer,
 		SDL_PIXELFORMAT_ARGB8888,
 		SDL_TEXTUREACCESS_STREAMING,
-		width,
-		height
+		window_data::width,
+		window_data::height
 	);
 }
 
@@ -150,7 +161,7 @@ namespace
 {
 	namespace exercise {
 		// Exercise 01
-		static void draw_grid(const int x, const int y, const uint16_t width, const uint16_t height, const uint32_t grid_color)
+		static void draw_grid(const int x, const int y, const uint32_t grid_color)
 		{
 			// Draw a 3x3 thick line
 			int line_size = 20;
@@ -161,9 +172,9 @@ namespace
 					int new_x = x + dx;
 					int new_y = y + dy;
 
-					if (new_x < width && new_y < height)
+					if (new_x < window_data::width && new_y < window_data::height)
 					{
-						color_buffer[(width * new_y) + new_x] = grid_color;
+						color_buffer[(window_data::width * new_y) + new_x] = grid_color;
 					}
 				}
 			}
@@ -171,7 +182,19 @@ namespace
 
 		static void draw_rectangle( const int x, const int y, const uint16_t width, const uint16_t height, const uint32_t grid_color)
 		{
-			
+			for (int dy = y; dy <=  (y + height); dy++)
+			{
+				for (int dx = x; dx <= (x + width); dx++)
+				{
+					int new_x = x + dx;
+					int new_y = y + dy;
+
+					if (new_x < window_data::width && new_y < window_data::height)
+					{
+						color_buffer[(window_data::width * new_y) + new_x] = grid_color;
+					}
+				}
+			}
 		}
 	}
 }
@@ -180,24 +203,10 @@ void clear_color_buffer(uint16_t width, uint16_t height, uint32_t color)
 {
 	for (unsigned int y = 0; y < height; y++)
 	{
-		bool on_horizontal_line = (y % 120 == 0);
 		for (unsigned int x = 0; x < width; x++)
 		{
-			bool on_vertical_line = (x % 120 == 0);
-
-			if (on_vertical_line || on_horizontal_line)
-			{
-				uint32_t grid_color = 0xFFd4d4d4;
-				exercise::draw_grid(x, y, width, height, grid_color);
-				if ((x + 20) < width) {x += 20;}
-
-			} else
-			{
-				color_buffer[(width * y) + x] = color;
-			}
-
+			color_buffer[(width * y) + x] = color;
 		}
-		if ((y + 20) < height && on_horizontal_line) {y += 20;}
 	}
 }
 
@@ -212,6 +221,7 @@ void render(uint16_t width, uint16_t height) {
 	SDL_RenderClear(renderer);
 
 	clear_color_buffer(width, height, 0xFF020202);
+	exercise::draw_rectangle(50, 50, 100, 100, 0xFFFFFFFF);
 	render_color_buffer(width);
 
 	SDL_RenderPresent(renderer);
@@ -225,12 +235,13 @@ void destroy_window()
 }
 
 int main() {
-	uint16_t width;
-	uint16_t height;
 
-	is_running = initialize_window(&width, &height);
+	is_running = initialize_window();
+	std::cout << "''''''''''''''''''''''''''''\n";
+	std::cout << "width: " << window_data::width << "\n";
+	std::cout << "height: " << window_data::height << "\n";
 
-	setup(width, height);
+	setup();
 
 	while (is_running)
 	{
@@ -243,7 +254,7 @@ int main() {
 						process_input(&e);
 		}
 		update();
-		render(width, height);
+		render(window_data::width, window_data::height);
 	}
 
 	destroy_window();
