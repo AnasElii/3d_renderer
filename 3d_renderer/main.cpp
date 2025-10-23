@@ -161,25 +161,19 @@ namespace
 {
 	namespace exercise {
 		// Exercise 01
-		static void draw_grid(const int x, const int y, const uint32_t grid_color)
+		static void draw_grid(const uint32_t grid_color)
 		{
-			// Draw a 3x3 thick line
-			int line_size = 20;
-			for (int dy = 0; dy <= line_size; dy++)
+			for (int dy = 0; dy <= window_data::height; dy+= 10)
 			{
-				for (int dx = 0; dx <= line_size; dx++)
+				for (int dx = 0; dx <= window_data::width; dx+= 10)
 				{
-					int new_x = x + dx;
-					int new_y = y + dy;
-
-					if (new_x < window_data::width && new_y < window_data::height)
-					{
-						color_buffer[(window_data::width * new_y) + new_x] = grid_color;
-					}
+					if ( dx < window_data::width && dy < window_data::height)
+						color_buffer[(window_data::width * dy) + dx] = grid_color;
 				}
 			}
 		}
 
+		// Exercise 02
 		static void draw_rectangle( const int x, const int y, const uint16_t width, const uint16_t height, const uint32_t grid_color)
 		{
 			for (int dy = y; dy <=  (y + height); dy++)
@@ -221,7 +215,8 @@ void render(uint16_t width, uint16_t height) {
 	SDL_RenderClear(renderer);
 
 	clear_color_buffer(width, height, 0xFF020202);
-	exercise::draw_rectangle(50, 50, 100, 100, 0xFFFFFFFF);
+	exercise::draw_grid(0xFF333333);
+	exercise::draw_rectangle(150, 150, 300, 150, 0xFF579e42);
 	render_color_buffer(width);
 
 	SDL_RenderPresent(renderer);
