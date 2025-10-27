@@ -6,7 +6,7 @@
 #define _CRT_SECURE_NO_WARNING
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
-#define TARGET_DISPLAY 2 // 0 based system
+#define TARGET_DISPLAY 1 // 0 based system
 
 // Define the static member
 std::vector<WindowsAdapter::MonitorInfo> WindowsAdapter::m_monitors;
